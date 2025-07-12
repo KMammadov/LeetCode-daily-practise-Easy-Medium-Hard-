@@ -180,3 +180,237 @@ select
 from actordirector
 group by actor_id,director_id
 having count(timestamp) >=3
+
+1068. Product Sales Analysis I
+
+select
+    product_name,
+    year,
+    price
+from sales s
+join product p on s.product_id=p.product_id
+
+1075. Project Employees I
+
+select
+    project_id,
+    round(sum(experience_years)/count(p.employee_id),2) as average_years
+from employee e
+join project p on e.employee_id=p.employee_id
+group by project_id
+
+1084. Sales Analysis III
+
+select
+    p.product_id,
+    p.product_name
+from product p
+join sales s on p.product_id=s.product_id
+group by product_id
+having min(sale_date)>= '2019-01-01' and max(sale_date)<='2019-03-31'
+
+1141. User Activity for the Past 30 Days I
+
+select
+    activity_date as day,
+    count(distinct user_id) as active_users
+from activity
+where (activity_date > '2019-06-27' and activity_date <='2019-07-27')
+group by activity_date
+
+1148. Article Views I
+
+select
+    author_id as id
+from views
+where author_id=viewer_id
+group by author_id
+order by author_id
+
+or
+
+select distinct
+    author_id as id
+from views
+where author_id=viewer_id 
+order by id
+
+1179. Reformat Department Table
+
+select
+    id,
+    sum(case when month='Jan' then revenue else null end) Jan_Revenue,
+    sum(case when month='Feb' then revenue else null end) Feb_Revenue,
+    sum(case when month='Mar' then revenue else null end) Mar_Revenue,
+    sum(case when month='Apr' then revenue else null end) Apr_Revenue,
+    sum(case when month='May' then revenue else null end) May_Revenue,
+    sum(case when month='Jun' then revenue else null end) Jun_Revenue,
+    sum(case when month='Jul' then revenue else null end) Jul_Revenue,
+    sum(case when month='Aug' then revenue else null end) Aug_Revenue,
+    sum(case when month='Sep' then revenue else null end) Sep_Revenue,
+    sum(case when month='Oct' then revenue else null end) Oct_Revenue,
+    sum(case when month='Nov' then revenue else null end) Nov_Revenue,
+    sum(case when month='Dec' then revenue else null end) Dec_Revenue
+from department
+group by id
+
+1211. Queries Quality and Percentage
+
+select
+    query_name,
+    round(avg(rating/position),2) as quality,
+    round(sum(
+                case 
+                    when rating <3 then 1
+                    else 0
+                end)*100/count(query_name),2) as poor_query_percentage 
+from queries
+group by query_name
+
+1280. Students and Examinations
+
+select
+    s.student_id,
+    s.student_name,
+    sub.subject_name,
+    count(e.subject_name) attended_exams
+from students s
+cross join subjects sub 
+left join examinations e on s.student_id=e.student_id
+                        and sub.subject_name=e.subject_name
+group by s.student_id,sub.subject_name,s.student_name
+order by s.student_id,sub.subject_name
+
+1327. List the Products Ordered in a Period
+
+select
+    product_name,
+    sum(unit) as unit
+from products p 
+join orders o on p.product_id=o.product_id
+where (order_date >= '2020-02-01' and order_date<'2020-03-01')
+group by product_name
+having unit>=100
+
+1378. Replace Employee ID With The Unique Identifier
+
+select
+    unique_id,
+    e.name
+from employees e
+left join employeeuni eu on e.id=eu.id
+
+1407. Top Travellers
+
+select
+    u.name,
+    ifnull(sum(r.distance),0) as travelled_distance
+from users u
+left join rides r on u.id=r.user_id
+group by r.user_id
+order by travelled_distance desc, u.name 
+
+1484. Group Sold Products By The Date
+
+select
+    sell_date,
+    count(distinct product) as num_sold,
+    group_concat(distinct product order by product asc separator ',') as products
+from activities
+group by sell_date
+order by sell_date
+
+1527. Patients With a Condition
+
+select
+    patient_id,
+    patient_name,
+    conditions
+from patients
+where conditions like ('DIAB1%') or conditions like ('% DIAB1%')
+
+1581. Customer Who Visited but Did Not Make Any Transactions
+
+select
+    v.customer_id,
+    count(v.visit_id)-count(t.transaction_id) as count_no_trans
+from visits v
+left join transactions t on v.visit_id=t.visit_id
+group by v.customer_id
+having count_no_trans>0
+
+OR
+
+select
+    v.customer_id,
+    count(v.visit_id) as count_no_trans
+from visits v
+left join transactions t on v.visit_id=t.visit_id
+where v.visit_id not in 
+                        (
+                        select
+                            visit_id
+                        from transactions
+                        )
+group by v.customer_id
+
+
+1587. Bank Account Summary II
+
+select
+    name as NAME,
+    sum(amount) as BALANCE
+from users u
+join transactions t on u.account=t.account
+group by u.account
+having BALANCE >10000
+
+1633. Percentage of Users Attended a Contest
+
+select
+    contest_id,
+    round((count(distinct r.user_id)*100)/
+                                            (
+                                                select
+                                                    count(user_id)
+                                                from users
+                                            ),2) as percentage
+from users u
+join register r on u.user_id=r.user_id
+group by contest_id
+order by percentage desc,contest_id
+
+1661. Average Time of Process per Machine
+
+with
+start_avg as (
+    select
+        machine_id,
+        avg(timestamp) as avg_start
+    from Activity
+    where activity_type = 'start'
+    group by machine_id
+),
+end_avg as (
+    select
+        machine_id,
+        avg(timestamp) as avg_end
+    from Activity
+    where activity_type = 'end'
+    group by machine_id
+)
+select
+    s.machine_id,
+    round(e.avg_end - s.avg_start, 3) as processing_time
+from
+    start_avg s
+    join end_avg e
+        on s.machine_id = e.machine_id
+
+1667. Fix Names in a Table
+
+select
+    user_id,
+    concat(upper(substr(name,1,1)),lower(substr(name,2))) as name
+from users
+order by user_id
